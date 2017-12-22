@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Copyright 2017 The Dopple Authors.
+# Licensed under the Apache License, Version 2.0. See the LICENSE file.
+
 """
 JSON-RPC Proxy
 
