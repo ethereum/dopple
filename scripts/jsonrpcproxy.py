@@ -21,9 +21,11 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from os import path
 from urllib.parse import urlparse
+
 import errno
 import socket
 import sys
+import time
 import threading
 
 if sys.platform == 'win32':
@@ -85,6 +87,22 @@ class UnixSocketConnector(object):
     def is_connected(self):
         return self._socket is not None
 
+    def check_connection(self, timeout):
+        SLEEPTIME = 0.1
+        wait_time = 0.0
+        last_exception = None
+        while True:
+            try:
+                if self.socket():
+                    break
+            except BackendError as ex:
+                last_exception = ex  # Ignore backed errors for some time.
+
+            time.sleep(SLEEPTIME)
+            wait_time += SLEEPTIME
+            if wait_time > timeout:
+                raise last_exception if last_exception else TimeoutError
+
     def recv(self, max_length):
         return self.socket().recv(max_length)
 
@@ -113,6 +131,9 @@ class NamedPipeConnector(object):
 
     def is_connected(self):
         return True
+
+    def check_connection(self, timeout):
+        pass
 
     def recv(self, max_length):
         (err, data) = win32file.ReadFile(self.handle, max_length)
@@ -222,6 +243,8 @@ class Proxy(HTTPServer):
 
     def run(self):
         self.conn = get_ipc_connector(self.backend_address)
+        self.conn.check_connection(timeout=10.0)
+
         print("JSON-RPC HTTP Proxy: {} -> {}".format(
             self.backend_address, self.proxy_url), file=sys.stderr, flush=True)
         self.serve_forever()
