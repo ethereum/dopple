@@ -4,15 +4,15 @@
 # Licensed under the Apache License, Version 2.0. See the LICENSE file.
 
 """
-JSON-RPC Proxy
+Dopple JSON-RPC Proxy
 
 This Python script provides HTTP proxy to Unix Socket based JSON-RPC servers.
 Check out --help option for more information.
 
 Build with cython:
 
-cython rpcproxy.py --embed
-gcc -O3 -I /usr/include/python3.5m -o rpcproxy rpcproxy.c \
+cython dopple.py --embed
+gcc -O3 -I /usr/include/python3.5m -o dopple dopple.c \
 -Wl,-Bstatic -lpython3.5m -lz -lexpat -lutil -Wl,-Bdynamic -lpthread -ldl -lm
 
 """
@@ -37,7 +37,7 @@ VERSION = '0.2'
 BUFSIZE = 32
 DELIMITER = ord('\n')
 BACKEND_CONNECTION_TIMEOUT=30.0
-INFO = """JSON-RPC Proxy
+INFO = """Dopple JSON-RPC Proxy
 
 Version:  {version}
 Proxy:    {proxy_url}
@@ -246,7 +246,7 @@ class Proxy(HTTPServer):
         self.conn = get_ipc_connector(self.backend_address)
         self.conn.check_connection(timeout=BACKEND_CONNECTION_TIMEOUT)
 
-        print("JSON-RPC HTTP Proxy: {} -> {}".format(
+        print("Dopple JSON-RPC HTTP Proxy: {} -> {}".format(
             self.backend_address, self.proxy_url), file=sys.stderr, flush=True)
         self.serve_forever()
 
@@ -264,7 +264,7 @@ PROXY_URL_HELP = "URL for this proxy server"
 
 def parse_args():
     parser = ArgumentParser(
-        description='HTTP Proxy for JSON-RPC servers',
+        description='Dopple HTTP Proxy for JSON-RPC servers',
         formatter_class=ArgumentDefaultsHelpFormatter
     )
 
@@ -287,7 +287,7 @@ def run(proxy_url=DEFAULT_PROXY_URL, backend_path=DEFAULT_BACKEND_PATH):
 
 def run_daemon(proxy_url=DEFAULT_PROXY_URL, backend_path=DEFAULT_BACKEND_PATH):
     proxy = Proxy(proxy_url, backend_path)
-    th = threading.Thread(name='jsonrpcproxy', target=proxy.run)
+    th = threading.Thread(name='dopple', target=proxy.run)
     th.daemon = True
     th.start()
     return proxy
