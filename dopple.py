@@ -33,7 +33,7 @@ if sys.platform == 'win32':
     import pywintypes
 
 
-VERSION = '0.2'
+VERSION = '0.3.0'
 BUFSIZE = 32
 DELIMITER = ord('\n')
 BACKEND_CONNECTION_TIMEOUT=30.0
