@@ -6,7 +6,7 @@ Check out --help option for more information.
 ## Use
 
 ```bash
-dopple.py --backend_path ~/.ethereum/geth.ipc --proxy_url http://127.0.0.1:8545
+dopple.py ~/.ethereum/geth.ipc http://127.0.0.1:8545
 ```
 
 These values above are the default ones too. If they match your current configuration, they can be ommitted.
