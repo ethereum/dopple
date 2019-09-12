@@ -62,6 +62,7 @@ setup(
     zip_safe=False,
     keywords='ethereum',
     packages=find_packages(exclude=["tests", "tests.*"]),
+    package_data={'dopple': ['py.typed']},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
