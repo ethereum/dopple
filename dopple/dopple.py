@@ -23,6 +23,7 @@ from os import path
 from urllib.parse import urlparse
 
 import errno
+import pkg_resources
 import socket
 import sys
 import time
@@ -32,8 +33,11 @@ if sys.platform == 'win32':
     import win32file
     import pywintypes
 
+try:
+    VERSION = pkg_resources.get_distribution("dopple").version
+except pkg_resources.DistributionNotFound:
+    VERSION = 'unknown'
 
-VERSION = '0.3.0'
 BUFSIZE = 32
 DELIMITER = ord('\n')
 BACKEND_CONNECTION_TIMEOUT=30.0
@@ -292,8 +296,10 @@ def run_daemon(proxy_url=DEFAULT_PROXY_URL, backend_path=DEFAULT_BACKEND_PATH):
     th.start()
     return proxy
 
-
-if __name__ == '__main__':
+def main():
     args = parse_args()
     run(args.proxy_url, args.backend_path)
+
+if __name__ == '__main__':
+    main()
 
