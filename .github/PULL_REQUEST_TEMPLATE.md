@@ -15,7 +15,3 @@ Summary of approach.
 
 [//]: # (See: https://dopple.readthedocs.io/en/latest/contributing.html#pull-requests)
 - [ ] Add entry to the [release notes](https://github.com/ethereum/dopple/blob/master/newsfragments/README.md)
-
-#### Cute Animal Picture
-
-![put a cute animal picture link inside the parentheses]()

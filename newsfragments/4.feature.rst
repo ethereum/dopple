@@ -1,0 +1,1 @@
+Add default ethereum-python scaffolding and turn into proper pip installable Python package
