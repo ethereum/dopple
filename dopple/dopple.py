@@ -3,7 +3,7 @@
 # Copyright 2017 The Dopple Authors.
 # Licensed under the Apache License, Version 2.0. See the LICENSE file.
 
-"""
+r"""
 Dopple JSON-RPC Proxy
 
 This Python script provides HTTP proxy to Unix Socket based JSON-RPC servers.
@@ -17,20 +17,20 @@ gcc -O3 -I /usr/include/python3.5m -o dopple dopple.c \
 
 """
 
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 import errno
-import pkg_resources
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from os import path
 import socket
 import sys
-import time
 import threading
+import time
 from typing import Any, Optional  # noqa: F401
 from urllib.parse import urlparse
 
+import pkg_resources
 
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import win32file
     import pywintypes
 else:
@@ -40,10 +40,10 @@ else:
 try:
     VERSION = pkg_resources.get_distribution("dopple").version
 except pkg_resources.DistributionNotFound:
-    VERSION = 'unknown'
+    VERSION = "unknown"
 
 BUFSIZE = 32
-DELIMITER = ord('\n')
+DELIMITER = ord("\n")
 BACKEND_CONNECTION_TIMEOUT = 30.0
 INFO = """Dopple JSON-RPC Proxy
 
@@ -138,8 +138,14 @@ class NamedPipeConnector(object):
     def __init__(self, ipc_path: str) -> None:
         try:
             self.handle = win32file.CreateFile(
-                ipc_path, win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-                0, None, win32file.OPEN_EXISTING, 0, None)
+                ipc_path,
+                win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                0,
+                None,
+                win32file.OPEN_EXISTING,
+                0,
+                None,
+            )
         except pywintypes.error as err:
             raise IOError(err)
 
@@ -155,7 +161,7 @@ class NamedPipeConnector(object):
             raise IOError(err)
         return data
 
-    def sendall(self, data: bytes) -> 'win32file.WriteFile':
+    def sendall(self, data: bytes) -> "win32file.WriteFile":
         return win32file.WriteFile(self.handle, data)
 
     def close(self) -> None:
@@ -163,17 +169,17 @@ class NamedPipeConnector(object):
 
 
 def get_ipc_connector(ipc_path: str) -> Any:
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         return NamedPipeConnector(ipc_path)
     return UnixSocketConnector(ipc_path)
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
 
-    server: 'Proxy'
+    server: "Proxy"
 
     def do_GET(self) -> None:
-        if self.path != '/':
+        if self.path != "/":
             self.send_response(404)
             self.end_headers()
             return
@@ -182,13 +188,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/plain")
         self.addCORS()
         self.end_headers()
-        backend_url = 'unix:' + self.server.backend_address
-        proxy_url = '{}:{}'.format(self.server.server_name,
-                                   self.server.server_port)
-        info = INFO.format(version=VERSION, proxy_url=proxy_url,
-                           backend_url=backend_url,
-                           connected=self.server.conn.is_connected())
-        self.wfile.write(info.encode('utf-8'))
+        backend_url = "unix:" + self.server.backend_address
+        proxy_url = "{}:{}".format(self.server.server_name, self.server.server_port)
+        info = INFO.format(
+            version=VERSION,
+            proxy_url=proxy_url,
+            backend_url=backend_url,
+            connected=self.server.conn.is_connected(),
+        )
+        self.wfile.write(info.encode("utf-8"))
 
     def do_OPTIONS(self) -> None:
         self.send_response(200)
@@ -197,7 +205,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self) -> None:
-        request_length = int(self.headers['Content-Length'])  # type: ignore
+        request_length = int(self.headers["Content-Length"])  # type: ignore
         request_content = self.rfile.read(request_length)
         # self.log_message("Headers:  {}".format(self.headers))
         # self.log_message("Request:  {}".format(request_content))
@@ -214,7 +222,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(response_content)
         except BackendError as err:
             self.send_response(502)
-            error_msg = str(err).encode('utf-8')
+            error_msg = str(err).encode("utf-8")
             # TODO: Send as JSON-RPC response
             self.send_header("Content-type", "text/plain")
             self.send_header("Content-length", str(len(error_msg)))
@@ -231,11 +239,10 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 class Proxy(HTTPServer):
-
     def __init__(self, proxy_url: str, backend_path: str) -> None:
         self.proxy_url = proxy_url
         url = urlparse(proxy_url)
-        assert url.scheme == 'http'
+        assert url.scheme == "http"
         proxy_address = url.hostname, url.port
 
         super(Proxy, self).__init__(proxy_address, HTTPRequestHandler)
@@ -245,7 +252,7 @@ class Proxy(HTTPServer):
     def process(self, request: Any) -> bytes:
         self.conn.sendall(request)
 
-        response = b''
+        response = b""
         while True:
             r = self.conn.recv(BUFSIZE)
             if not r:
@@ -261,38 +268,45 @@ class Proxy(HTTPServer):
         self.conn = get_ipc_connector(self.backend_address)
         self.conn.check_connection(timeout=BACKEND_CONNECTION_TIMEOUT)
 
-        print("Dopple JSON-RPC HTTP Proxy: {} -> {}".format(
-            self.backend_address, self.proxy_url), file=sys.stderr, flush=True)
+        print(
+            "Dopple JSON-RPC HTTP Proxy: {} -> {}".format(
+                self.backend_address, self.proxy_url
+            ),
+            file=sys.stderr,
+            flush=True,
+        )
         self.serve_forever()
 
 
-if sys.platform == 'win32':
-    DEFAULT_BACKEND_PATH = r'\\.\pipe\geth.ipc'
+if sys.platform == "win32":
+    DEFAULT_BACKEND_PATH = r"\\.\pipe\geth.ipc"
     BACKEND_PATH_HELP = "Named Pipe of a backend RPC server"
 else:
-    DEFAULT_BACKEND_PATH = '~/.ethereum/geth.ipc'
+    DEFAULT_BACKEND_PATH = "~/.ethereum/geth.ipc"
     BACKEND_PATH_HELP = "Unix Socket of a backend RPC server"
 
-DEFAULT_PROXY_URL = 'http://127.0.0.1:8545'
+DEFAULT_PROXY_URL = "http://127.0.0.1:8545"
 PROXY_URL_HELP = "URL for this proxy server"
 
 
 def parse_args() -> Any:
     parser = ArgumentParser(
-        description='Dopple HTTP Proxy for JSON-RPC servers',
-        formatter_class=ArgumentDefaultsHelpFormatter
+        description="Dopple HTTP Proxy for JSON-RPC servers",
+        formatter_class=ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('backend_path', nargs='?',
-                        default=DEFAULT_BACKEND_PATH,
-                        help=BACKEND_PATH_HELP)
-    parser.add_argument('proxy_url', nargs='?',
-                        default=DEFAULT_PROXY_URL,
-                        help=PROXY_URL_HELP)
+    parser.add_argument(
+        "backend_path", nargs="?", default=DEFAULT_BACKEND_PATH, help=BACKEND_PATH_HELP
+    )
+    parser.add_argument(
+        "proxy_url", nargs="?", default=DEFAULT_PROXY_URL, help=PROXY_URL_HELP
+    )
     return parser.parse_args()
 
 
-def run(proxy_url: str=DEFAULT_PROXY_URL, backend_path: str=DEFAULT_BACKEND_PATH) -> None:
+def run(
+    proxy_url: str = DEFAULT_PROXY_URL, backend_path: str = DEFAULT_BACKEND_PATH
+) -> None:
     proxy = Proxy(proxy_url, backend_path)
     try:
         proxy.run()
@@ -300,9 +314,11 @@ def run(proxy_url: str=DEFAULT_PROXY_URL, backend_path: str=DEFAULT_BACKEND_PATH
         proxy.shutdown()
 
 
-def run_daemon(proxy_url: str=DEFAULT_PROXY_URL, backend_path: str=DEFAULT_BACKEND_PATH) -> Proxy:
+def run_daemon(
+    proxy_url: str = DEFAULT_PROXY_URL, backend_path: str = DEFAULT_BACKEND_PATH
+) -> Proxy:
     proxy = Proxy(proxy_url, backend_path)
-    th = threading.Thread(name='dopple', target=proxy.run)
+    th = threading.Thread(name="dopple", target=proxy.run)
     th.daemon = True
     th.start()
     return proxy
@@ -313,5 +329,5 @@ def main() -> None:
     run(args.proxy_url, args.backend_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

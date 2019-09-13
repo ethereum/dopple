@@ -1,3 +1,1 @@
-from .dopple import (  # noqa: F401
-    main,
-)
+from .dopple import main  # noqa: F401
