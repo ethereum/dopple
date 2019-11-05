@@ -45,7 +45,7 @@ jobs:
   lint:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
         environment:
           TOXENV: lint
   py36-core:
@@ -66,6 +66,37 @@ jobs:
       - image: pypy
         environment:
           TOXENV: pypy3-core
+  # Integration tests use docker to spin up different backends (geth, aleth etc.). Running
+  # docker is simpler when the host isn't a docker container itself
+  py36-integration-geth:
+    <<: *common
+    machine:
+        image: ubuntu-1604:201903-01
+    environment:
+      TOXENV: py36-integration-geth
+      PYENV_VERSION: 3.6.5
+  py36-integration-aleth:
+    <<: *common
+    machine:
+        image: ubuntu-1604:201903-01
+    environment:
+      TOXENV: py36-integration-aleth
+      PYENV_VERSION: 3.6.5
+  py37-integration-geth:
+    <<: *common
+    machine:
+        image: ubuntu-1604:201903-01
+    environment:
+      TOXENV: py37-integration-geth
+      PYENV_VERSION: 3.7.0
+  py37-integration-aleth:
+    <<: *common
+    machine:
+        image: ubuntu-1604:201903-01
+    environment:
+      TOXENV: py37-integration-aleth
+      PYENV_VERSION: 3.7.0
+
 workflows:
   version: 2
   test:
@@ -75,3 +106,7 @@ workflows:
       - py36-core
       - py37-core
       - pypy3-core
+      - py36-integration-geth
+      - py36-integration-aleth
+      - py37-integration-geth
+      - py37-integration-aleth

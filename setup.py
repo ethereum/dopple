@@ -8,8 +8,11 @@ from setuptools import (
 extras_require = {
     'test': [
         "pytest>=5.1.3,<6",
+        "pytest-trio==0.5.2",
         "pytest-xdist==1.18.1",
+        "requests==2.22.0",
         "tox>=2.9.1,<3",
+        "trio==0.13.0",
     ],
     'lint': [
         "black==19.3b",
